@@ -6,7 +6,7 @@ An experimental cloud mod for **DCS World**, built on [ATMOS-X](https://www.atx4
 
 ## Project status
 
-**In development.** The package was prepared for **DCS World 2.9.31.29434**. Adjusting `Preset3` produced slightly taller clouds in-game. Renderer-driven variation in cloud height is still experimental and needs in-game validation. Compatibility with other DCS builds is unverified.
+**In development.**  Adjusting Presets produced slightly taller clouds in-game. Renderer-driven variation in cloud height is still experimental and needs in-game validation. Compatibility with other DCS builds is unverified.
 
 ## Installation
 
