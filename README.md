@@ -1,70 +1,132 @@
-# Weather MSFS Realista Completo para DCS World
+# Weather MSFS Realistic Complete for DCS World
 
-Pacote experimental de clima e nuvens para **DCS World**, construído sobre a base do **DCS Fluffy Clouds** e dos presets do [ATMOS-X](https://www.atx4dcs.com/), com inspiração visual no Microsoft Flight Simulator.
+An experimental, all-in-one weather and cloud overhaul for **DCS World**, built on DCS Fluffy Clouds and ATMOS-X presets with a visual style inspired by Microsoft Flight Simulator.
 
-O objetivo é reunir em **um único mod para OvGME** tudo o que funcionou nos testes até agora: presets retrabalhados, nuvens volumétricas mais cheias e variadas, cirrus com mais detalhe, mapa de cobertura suave, shaders de céu e os arquivos necessários da base Fluffy.
+The current package combines the cloud presets, volumetric rendering adjustments, cirrus detail, sky shaders, effect textures, Mission Editor integration, and renderer files into a **single OvGME mod**. Only one activation is required.
 
-> **Importante:** este é um mod experimental e dependente da versão do DCS. Atualizações do simulador podem exigir uma nova compilação ou revisão dos shaders. Compatibilidade com o verificador de integridade de servidores multiplayer não é garantida.
+> **Important:** this mod replaces DCS installation files while enabled. Use a mod manager such as OvGME so every change can be reverted safely. DCS updates may require the mod to be disabled, reviewed, and re-enabled. Multiplayer integrity-check compatibility is not guaranteed.
 
-[Baixar o pacote completo](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) · [Ver todas as mudanças](CHANGELOG.md) · [Instruções rápidas](LEIA-ME.txt) · [Licença](LICENSE)
+[Download the complete package](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) · [Quick instructions](LEIA-ME.txt) · [License](LICENSE)
 
-## Baixe pela página de Releases
+## Download
 
-Use o arquivo `Weather_MSFS_Realista_Completo-*.zip` da [Release mais recente](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest).
+Download `Weather_MSFS_Realista_Completo-*.zip` from the [latest GitHub Release](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest).
 
-O ZIP gerado pelo botão **Code → Download ZIP** contém o código e os arquivos menores para consulta, mas **não é o pacote instalável completo**. O arquivo `Bazar/Effects/EffectTextures.zip` ultrapassa o limite de 100 MB por arquivo do GitHub; por isso, o mod completo é distribuído como anexo de Release. O cache compilado `Bazar/shaders/fxo/fxo.edcz` também fica somente no pacote completo.
+Do **not** use **Code → Download ZIP** as the installable package. The repository branch contains the source and documentation, but GitHub's per-file size limit prevents the complete runtime package from being stored directly in the branch. The Release archive includes every required file, including `EffectTextures.zip` and the compiled `fxo.edcz` cache.
 
-## O que está incluído
+## What the current package does
 
-- Base Fluffy Clouds: `enlight.dll` para `bin` e `bin-mt`, texturas e miniaturas de nuvem, shaders de Lua/estrela/relâmpago e integração com o painel de clima do Mission Editor.
-- Presets ATMOS-X retrabalhados em `Config/Effects/clouds.lua`.
-- Mapa de cobertura suave `cloudsMap01.png`.
-- Shader de cirrus com camada de detalhe C2 em `Bazar/shaders/enlight/cirrus.fx`.
-- Cache `fxo.edcz` patchado para uma base volumétrica mais cheia, variação no topo e gomos mais definidos.
-- Pacote de texturas de efeitos com recursos de nuvens, cirrus, Lua, estrelas, chuva, neve e outros efeitos atmosféricos.
+- Installs a complete set of reworked ATMOS-X cloud presets through `Config/Effects/clouds.lua`.
+- Uses `cloudsMap01.png` to provide smoother, less repetitive cloud coverage.
+- Adjusts volumetric cloud density, thickness, coverage, top variation, detail scale, and lobe definition.
+- Adds a detailed cirrus shader with pattern variation and refined distance behavior.
+- Includes Moon, star, and lightning shaders as part of the unified visual package.
+- Includes effect textures for clouds, cirrus, the Moon, stars, rain, snow, and related atmospheric effects.
+- Installs `enlight.dll` for both the standard and multithreaded DCS executables.
+- Integrates the presets with the DCS Mission Editor weather interface.
 
-Quando havia conflito entre a base Fluffy e os ajustes desta versão, prevaleceu a versão do **Weather MSFS Realista Completo**.
+The package is designed as one consistent set. Mixing individual files with other weather, cloud, or shader mods can produce visual errors, shader compilation failures, or repeated cache rebuilding.
 
-## Principais mudanças em relação ao repositório anterior
+## Package structure
 
-- `clouds.lua` recebeu uma revisão ampla: **611 linhas adicionadas e 551 removidas** em relação ao último commit publicado.
-- Foi adicionado o preset experimental `Preset89` / **Congestus Teste (vertical)**.
-- Os presets existentes foram recalibrados em altura e espessura, cobertura, densidade, frequência/desfoque de ruído e uso do mapa de cobertura.
-- As camadas passaram a misturar escalas de ruído e offsets do mapa para reduzir repetição visual e produzir bases mais cheias, topos mais variados e gomos mais definidos.
-- Entraram os novos arquivos `cloudsMap01.png`, `cirrus.fx`, `Moon.fx`, `Star.fx`, `lightning.fx`, `fxo.edcz` e `EffectTextures.zip`.
-- As DLLs `enlight.dll`, as miniaturas, `me_weather.lua` e `me_weather_panel.dlg` são os mesmos arquivos da versão anterior; foram mantidos para que a Release continue sendo um pacote único.
+After extraction, the mod folder should look like this:
 
-Detalhes adicionais e hashes dos arquivos grandes estão em [CHANGELOG.md](CHANGELOG.md).
+```text
+Weather_MSFS_Realista_Completo/
+├── Bazar/
+│   ├── Effects/
+│   └── shaders/
+├── bin/
+├── bin-mt/
+├── Config/
+├── MissionEditor/
+└── LEIA-ME.txt
+```
 
-## Instalação com OvGME
+These folders must be installed directly into the **DCS World installation root** by OvGME. Do not point the mod at `Saved Games`.
 
-1. Feche o DCS World.
-2. Baixe e extraia o ZIP da [Release mais recente](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) na biblioteca de mods do seu perfil OvGME.
-3. No OvGME, desative outros mods de nuvem, clima ou shader que possam sobrescrever os mesmos arquivos. Exemplos usados durante os testes: `DCS_Shader_BaseSuave_Test01`, `Fluffy clouds`, `Weather_MSFS_Realista_v1`, G1/G2, C1/C2 e as séries T/E/H/K/S/V.
-4. Não é necessário desativar o mod **Offline Terrain**, pois ele não faz parte deste conjunto de arquivos.
-5. Ative apenas `Weather_MSFS_Realista_Completo`.
-6. Abra o DCS e deixe o primeiro carregamento terminar.
+## Installation with OvGME
 
-O perfil do OvGME deve apontar para a pasta de instalação do DCS World. A estrutura instalada começa diretamente em `Bazar/`, `bin/`, `bin-mt/`, `Config/` e `MissionEditor/`.
+1. Close DCS World.
+2. Download the complete ZIP from the [Releases page](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases).
+3. Extract `Weather_MSFS_Realista_Completo` into the Mods folder used by your OvGME profile.
+4. In OvGME, confirm that the profile's **Root Folder** is the DCS World installation directory, for example `C:\Program Files\Eagle Dynamics\DCS World` or your custom DCS installation path.
+5. Disable other cloud, weather, or shader mods that overwrite files under `Bazar`, `Config`, `MissionEditor`, `bin`, or `bin-mt`.
+6. The unrelated **Offline Terrain** mod can remain enabled if it does not report a file conflict.
+7. Enable only `Weather_MSFS_Realista_Completo` for the cloud and weather overhaul.
+8. Start DCS and allow the first launch to finish rebuilding shaders.
 
-## Primeiro carregamento e cache de shaders
+If OvGME reports file conflicts, cancel the activation and disable the conflicting mod before continuing.
 
-No primeiro boot após ativar o mod, o DCS recompila shaders. O carregamento pode demorar mais e as nuvens podem desaparecer e reaparecer enquanto o cache é reconstruído. Isso é esperado uma vez.
+## First launch and shader cache
 
-Nos boots seguintes, mantenha o mesmo conjunto de mods ativo para que o cache persista. Trocar repetidamente mods de nuvem e shader invalida o cache e pode trazer o pop-in de volta.
+The first DCS launch after enabling the mod can take longer than normal. DCS must compile and rebuild shader data for the newly installed files.
 
-Se o problema continuar depois de **dois boots sem mudar os mods**:
+During this first launch, clouds may briefly disappear and reload. This is expected while the shader cache is being created. Complete a flight, close DCS normally, and launch it again without changing the active mod set.
 
-1. Feche o DCS.
-2. Apague as pastas `fxo` e `metashaders2` em `Saved Games\DCS.openbeta` (ou na pasta equivalente da sua instalação).
-3. Abra o DCS e aguarde uma reconstrução limpa do cache.
+Later launches should reuse the cache. Repeatedly enabling, disabling, or exchanging shader mods invalidates the cache and can cause the cloud pop-in to return.
 
-## Desinstalação e reversão
+## Using the mod
 
-Feche o DCS e desative `Weather_MSFS_Realista_Completo` no OvGME. O gerenciador restaura os arquivos originais que estavam presentes antes da ativação.
+1. Open the DCS Mission Editor.
+2. Create or edit a mission.
+3. Open the weather panel and select one of the included cloud presets.
+4. Set the cloud base, visibility, precipitation, wind, time of day, and other mission conditions as needed.
+5. Save the mission and test it in-game.
 
-Se o DCS não iniciar após a instalação, desative o mod antes de qualquer outro teste. Não misture arquivos deste pacote manualmente com outras versões de shaders.
+Cloud appearance depends on the selected preset, altitude, lighting, time of day, camera position, and DCS graphics settings. For comparisons, keep the mission and graphics settings unchanged.
 
-## Créditos e licença
+## Troubleshooting
 
-Projeto baseado no trabalho do **DCS Fluffy Clouds** e nos presets do **ATMOS-X**. Consulte [LICENSE](LICENSE) para os termos do repositório. Microsoft Flight Simulator é citado apenas como referência visual; este projeto não é afiliado à Microsoft, à Eagle Dynamics ou ao ATMOS-X.
+### Clouds disappear and reload
+
+Allow the first shader compilation to complete. Launch DCS a second time without changing any mods.
+
+If the problem continues after two launches with the same mod set:
+
+1. Close DCS.
+2. Open the appropriate DCS folder under `Saved Games`.
+3. Delete the `fxo` and `metashaders2` cache folders.
+4. Start DCS and wait for a clean shader rebuild.
+
+DCS recreates both cache folders automatically.
+
+### DCS does not start
+
+1. Close DCS and its updater.
+2. Disable `Weather_MSFS_Realista_Completo` in OvGME.
+3. Confirm that OvGME restored the original files.
+4. Start DCS without the mod.
+5. Check whether a recent DCS update changed the files used by the package before enabling it again.
+
+### Visual artifacts or compilation errors
+
+- Make sure no other cloud or shader mod is active.
+- Confirm that the entire Release package was extracted without errors.
+- Verify that OvGME targets the DCS installation root rather than `Saved Games`.
+- Rebuild the shader cache only after resolving mod conflicts.
+
+## Updating DCS World
+
+Before running a DCS repair or major update:
+
+1. Close DCS.
+2. Disable the mod in OvGME.
+3. Update or repair DCS.
+4. Confirm that the simulator starts normally.
+5. Re-enable the mod only after confirming that it is compatible with the installed DCS build.
+
+## Uninstallation
+
+1. Close DCS World.
+2. Disable `Weather_MSFS_Realista_Completo` in OvGME.
+3. Allow OvGME to restore the original DCS files.
+4. Start DCS and let it rebuild shaders if necessary.
+
+Do not delete or overwrite the OvGME backup data while the mod is enabled.
+
+## Credits and license
+
+This project uses work from **DCS Fluffy Clouds** and **ATMOS-X**. Microsoft Flight Simulator is referenced only as a visual inspiration. This project is not affiliated with Microsoft, Eagle Dynamics, or ATMOS-X.
+
+See [LICENSE](LICENSE) for the repository license.
