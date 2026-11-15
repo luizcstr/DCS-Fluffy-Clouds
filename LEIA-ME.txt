@@ -1,4 +1,4 @@
-DCS Fluffy Clouds — STANDALONE MOD
+Fluffy Clouds — STANDALONE MOD
 ==================================
 
 WHAT IS INCLUDED
@@ -14,7 +14,7 @@ HOW TO ENABLE
   2. Disable ATMOS-X and any other cloud, weather, or shader mod that
      overwrites the same files.
   3. Confirm that the OvGME profile points to the DCS installation folder.
-  4. Enable only "Weather_MSFS_Realista_Standalone".
+  4. Enable only "Fluffy Clouds".
   5. Start DCS and wait for the first shader compilation to finish.
 
 FIRST LAUNCH
@@ -28,5 +28,5 @@ FIRST LAUNCH
   recreates both folders automatically.
 
 REVERSAL
-  Close DCS and disable "Weather_MSFS_Realista_Standalone" in OvGME. The
+  Close DCS and disable "Fluffy Clouds" in OvGME. The
   manager restores the simulator's original files.
