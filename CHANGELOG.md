@@ -1,8 +1,8 @@
 # Changelog
 
-## Weather MSFS Realistic Standalone
+## Fluffy Clouds
 
-Replaced the previous Fluffy Clouds 1.0 release contents with the complete standalone package.
+Replaced the previous Fluffy Clouds 1.0 release contents with the complete Fluffy Clouds package.
 
 ### Included changes
 
