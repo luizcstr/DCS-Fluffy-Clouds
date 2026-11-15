@@ -41,7 +41,7 @@ static const float earthRadiusBottom    = gEarthRadius * 0.25;
 static const float earthRadiusTop       = gEarthRadius;
 static const float rangeInv             = 2.0 / quadSize;
 static const float rangeTopInv          = 2.0 / 450000.0;
-static const float tile                 = 8.0;
+static const float tile                 = 3.5;
 static const float windSpeed            = 40.0; // gentler cirrus advection
 
 //-------------------------------------------------------------------------------
@@ -129,14 +129,17 @@ float2 CirrusPatternUV(float2 uv, uint eventIndex)
     float2 offset = float2(float(offsetSeed & 65535u), float(offsetSeed >> 16)) / 65536.0;
     p += offset;
 
-    // Low-frequency continuous warp; no per-frame random noise or UV quantization.
-    // Small amplitude limits distortion of the original cloud features.
-    const float warpAmplitude = 0.018;
+    // Low-frequency domain warp driven by the continuous world UV (not the per-tile
+    // coordinate): it varies slowly across many tiles, so each region of sky is
+    // displaced differently and the grid repetition is broken without hard seams.
+    // Two octaves give organic, non-aligned meandering.
+    const float warpAmplitude = 0.20;
     float evolution = time * 0.0006;
-    float2 q = p * 6.2831853;
+    float2 wlo  = uv * 0.37;   // large regions
+    float2 wmid = uv * 0.90;   // ~1 tile period: makes adjacent tiles differ
     float2 warp = float2(
-        sin(q.y * 0.73 + q.x * 0.21 + evolution + offset.x * 6.2831853),
-        sin(q.x * 0.67 - q.y * 0.19 - evolution * 0.83 + offset.y * 6.2831853));
+        sin(wlo.y * 1.30 + wlo.x * 0.70 + evolution)        + 0.75 * sin(wmid.y * 1.10 - wmid.x * 0.90),
+        sin(wlo.x * 1.10 - wlo.y * 1.30 - evolution * 0.83) + 0.75 * sin(wmid.x * 1.00 + wmid.y * 0.80));
     return p + warpAmplitude * warp;
 }
 
@@ -359,34 +362,48 @@ float fbm3(float2 p) {
 // Shared coverage mask for visible cirrus and self-shadow samples.
 float CirrusPatchMask(float2 uv)
 {
-    static const float UV_PER_METER = tile / quadSize;
-    const float BLOB_SIZE_KM   = 60.0;
-    const float BLOB_FILL      = 0.25;
-    const float BLOB_SOFTNESS  = 0.20;
-    const float BLOB_JITTER    = 0.75;
-    #define  BLOB_FIELDS        3
+    // Ported from ATMOS-X: a domain-warped, multi-field smooth-min FBM mask carves
+    // organic coverage patches, which hides the texture tiling far better than a
+    // straight FBM mask does.
+    static const float UV_PER_METER      = tile / quadSize;
+    const float BLOB_SIZE_KM       = 40.0;
+    const float SMALL_BLOB_SIZE_KM = 6.0;
+    const float BLOB_FILL          = 0.235;
+    const float BLOB_SOFTNESS      = 0.26;
+    const float BLOB_JITTER        = 0.95;
+    const float WARP_STRENGTH      = 0.35;
+    const float SMIN_K             = 0.18;
 
-    float blobPeriodUV = BLOB_SIZE_KM * 1000.0 * UV_PER_METER;
-    float2 patchUV     = uv / max(blobPeriodUV, 1e-5);
+    float2 windOffset   = float2(time * 0.005, time * 0.002);
+    float blobPeriodUV  = max(BLOB_SIZE_KM       * 1000.0 * UV_PER_METER, 1e-5);
+    float smallPeriodUV = max(SMALL_BLOB_SIZE_KM * 1000.0 * UV_PER_METER, 1e-5);
+
+    // Slow secondary noise distorts the patch UVs for organic, non-aligned blobs.
+    float2 warpUV = uv / blobPeriodUV * 0.37 + windOffset * 0.3;
+    float2 domainWarp = float2(
+        noise2D(warpUV + 5.3) - 0.5,
+        noise2D(warpUV + float2(9.1, 3.7)) - 0.5) * WARP_STRENGTH;
+
+    float2 patchUV       = uv / blobPeriodUV  + windOffset       + domainWarp;
+    float2 patchUV_small = uv / smallPeriodUV + windOffset * 2.5 + domainWarp * 0.5;
 
     float baseN   = fbm3(patchUV);
-    float detailN = fbm3(patchUV * 2.3 + 17.0);
-    float n0      = lerp(baseN, baseN * 0.6 + 0.4 * detailN, BLOB_JITTER);
-    float n = n0;
-	
-	#if BLOB_FIELDS > 1
-		float n1 = fbm3(patchUV + 37.21);
-		n = min(n, n1);
-	#endif
+    float detailN = fbm3(patchUV_small + 17.0);
+    float n = lerp(baseN, baseN * 0.6 + 0.4 * detailN, BLOB_JITTER);
 
-	#if BLOB_FIELDS > 2
-		float n2 = fbm3(patchUV * float2(1.03, 0.97) + 11.7);
-		n = min(n, n2);
-	#endif
+    {
+        float n1 = fbm3(patchUV + 37.21);
+        float h  = saturate(0.5 + 0.5 * (n1 - n) / SMIN_K);
+        n = lerp(n1, n, h) - SMIN_K * h * (1.0 - h);
+    }
+    {
+        float n2 = fbm3(patchUV * float2(1.03, 0.97) + 11.7);
+        float h  = saturate(0.5 + 0.5 * (n2 - n) / SMIN_K);
+        n = lerp(n2, n, h) - SMIN_K * h * (1.0 - h);
+    }
 
-    float mask = smoothstep(BLOB_FILL, BLOB_FILL + BLOB_SOFTNESS, n);
-    return mask;
-    #undef BLOB_FIELDS
+    float nBalanced = saturate((n - 0.5) * 0.85 + 0.5);
+    return smoothstep(BLOB_FILL, BLOB_FILL + BLOB_SOFTNESS, nBalanced);
 }
 
 //------------------------------------------------------------------------------
