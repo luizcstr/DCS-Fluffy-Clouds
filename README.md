@@ -1,15 +1,31 @@
 # DCS Fluffy Clouds — Weather MSFS Realistic Standalone
 
-An all-in-one weather and cloud overhaul for **DCS World**, based on the Weather MSFS Realistic standalone package. It includes the required ATMOS-X shader files and configuration, so it does **not** require ATMOS-X to be enabled separately.
+**DCS Fluffy Clouds — Weather MSFS Realistic Standalone** is a complete visual weather and cloud overhaul for **DCS World**. It changes the way the simulator draws and presents the sky, clouds, cirrus, precipitation, water, lightning, and related atmospheric effects, with a visual style inspired by Microsoft Flight Simulator.
+
+The package is **standalone**: the ATMOS-X shader and terrain files required by the custom cloud renderer are included inside the mod. You do not need to install or enable ATMOS-X separately.
 
 > **Important:** this mod replaces DCS installation files while enabled. Use a mod manager such as OvGME so every change can be reverted safely. DCS updates may require the mod to be disabled, reviewed, and re-enabled. Multiplayer integrity-check compatibility is not guaranteed.
 
 [Download the complete package](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) · [Quick instructions](LEIA-ME.txt) · [Standalone notes](LEIA-ME_STANDALONE.txt) · [License](LICENSE)
 
+## What the mod changes
+
+The mod replaces the default weather-rendering components with one consistent package:
+
+- **Cloud presets:** reworked ATMOS-X presets with adjusted altitude, thickness, density, coverage, detail scale, and cloud-top variation.
+- **Cloud coverage:** a smoother coverage map reduces repetitive patterns and produces more natural transitions between cloud areas.
+- **Volumetric rendering:** the patched `fxo.edcz` shader cache provides fuller cloud bases, more varied tops, and more defined cloud lobes.
+- **Cirrus and sky:** custom cirrus detail, Moon, star, and atmospheric shaders improve the upper-sky layers and distant atmosphere.
+- **Weather effects:** rain, snow, water, lightning, smoke, steam, and particle-system shaders are bundled so the package remains visually consistent.
+- **Mission Editor:** the included weather-panel files and thumbnails make the custom presets available while creating or editing missions.
+- **Runtime support:** `enlight.dll` is included for both standard and multithreaded DCS executables.
+
+The goal is a denser, more dimensional, and less repetitive sky. The exact result still depends on the selected mission preset, altitude, lighting, time of day, camera position, and DCS graphics settings.
+
 ## What is included
 
-- Reworked ATMOS-X cloud presets in `Config/Effects/clouds.lua`, including the custom preset set.
-- The required ATMOS-X terrain and renderer configuration files.
+- Reworked ATMOS-X cloud presets in `Config/Effects/clouds.lua`.
+- ATMOS-X terrain and renderer configuration required for standalone operation.
 - Patched `fxo.edcz`, cloud coverage textures, cirrus, sky, precipitation, water, lightning, and particle shaders.
 - `enlight.dll` for both the standard and multithreaded DCS executables.
 - Mission Editor weather integration and cloud thumbnails.
