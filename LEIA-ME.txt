@@ -1,40 +1,33 @@
-Weather_MSFS_Realista_Completo  —  MOD UNICO (tudo que funcionou ate agora)
-===========================================================================
+DCS Fluffy Clouds — MOD UNICO
+================================
 
-O QUE TEM DENTRO (um unico mod, uma unica ativacao no OvGME)
-  - Base Fluffy clouds: enlight.dll (bin e bin-mt), texturas de nuvem,
-    shaders de ceu (Moon, Star), lightning, painel de clima do ME.
-  - Nossos presets ATMOS-X (clouds.lua) + mapa suave (cloudsMap01.png).
-  - Nosso cirrus com camada de detalhe C2 (enlight/cirrus.fx).
-  - Nosso fxo.edcz PATCHADO: shader de densidade volumetrica com base
-    cheia, variacao de topo e gomos mais definidos.
-  (Onde havia conflito com o Fluffy, a NOSSA versao venceu.)
+O QUE TEM DENTRO
+  - Presets ATMOS-X retrabalhados em clouds.lua.
+  - Mapa suave de cobertura cloudsMap01.png.
+  - Nuvens volumetricas com base mais cheia, variacao de topo e gomos
+    mais definidos.
+  - Cirrus com camada de detalhe, shaders de ceu e lightning.
+  - enlight.dll para bin e bin-mt.
+  - Texturas e integracao com o painel de clima do Mission Editor.
 
 COMO ATIVAR
   1. Feche o DCS.
-  2. No OvGME, DESATIVE todos os mods de nuvem/clima/shader antigos:
-     DCS_Shader_BaseSuave_Test01, Fluffy clouds, Weather_MSFS_Realista_v1,
-     G1/G2, C1/C2, todos os T*/E*/H*/K*/S*/V*, Canario, Weather_v0.x.
-     (NAO mexa no "Offline Terrain" - e outra coisa, pode deixar ligado.)
-  3. ATIVE apenas "Weather_MSFS_Realista_Completo".
-  4. Abra o DCS.
+  2. No OvGME, desative outros mods de nuvem, clima ou shader que
+     sobrescrevam os mesmos arquivos.
+  3. Confirme que o perfil OvGME aponta para a pasta de instalacao do DCS.
+  4. Ative apenas "DCS Fluffy Clouds" para o pacote de clima e nuvens.
+  5. Abra o DCS e aguarde o primeiro carregamento terminar.
 
-SOBRE O "SOME E RECARREGA" DAS NUVENS (pop-in no inicio)
-  Causa: o DCS reconstroi o cache de shader sempre que mods sao trocados.
-  Durante os ajustes, trocamos de mod muitas vezes, e isso invalidava o
-  cache a cada boot -> recompilacao no inicio -> nuvens somem e voltam.
-  Correcao: com UM mod unico e estavel, o cache se reconstroi UMA vez e
-  passa a persistir.
-  - O PRIMEIRO boot depois de ativar este mod vai recompilar shaders
-    (carregamento mais lento, normal). Deixe terminar, voe, saia.
-  - Os boots SEGUINTES devem carregar do cache -> sem o pop-in.
-  - Importante: nao fique trocando mods entre os boots (e o que causa o
-    churn do cache).
-  - Se MESMO assim o pop-in persistir depois de 2 boots sem trocar nada,
-    da pra forcar uma reconstrucao limpa apagando as pastas "fxo" e
-    "metashaders2" em Saved Games\DCS.openbeta (com o DCS fechado) - o
-    DCS as recria no proximo boot.
+PRIMEIRO CARREGAMENTO
+  O DCS recompila os shaders na primeira inicializacao depois que o mod e
+  ativado. Esse carregamento pode demorar mais, e as nuvens podem sumir e
+  reaparecer enquanto o cache e criado.
+
+  Nos proximos boots, mantenha o mesmo conjunto de mods ativo para que o
+  cache seja reutilizado. Se o pop-in continuar depois de dois boots sem
+  trocar mods, feche o DCS e apague as pastas "fxo" e "metashaders2" na
+  pasta correspondente em Saved Games. O DCS recria ambas automaticamente.
 
 REVERSAO
-  Desative "Weather_MSFS_Realista_Completo" no OvGME. Tudo volta ao
-  original (o OvGME restaura os arquivos do DCS).
+  Feche o DCS e desative "DCS Fluffy Clouds" no OvGME. O gerenciador
+  restaura os arquivos originais do simulador.

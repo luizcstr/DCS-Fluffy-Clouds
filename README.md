@@ -1,6 +1,6 @@
-# Fluffy Clouds for DCS
+# DCS Fluffy Clouds
 
-An experimental, all-in-one weather and cloud overhaul for **DCS World**, built on and ATMOS-X presets with a visual style inspired by Microsoft Flight Simulator.
+An experimental, all-in-one weather and cloud overhaul for **DCS World**, combining custom volumetric-cloud tuning and ATMOS-X presets with a visual style inspired by Microsoft Flight Simulator.
 
 The current package combines the cloud presets, volumetric rendering adjustments, cirrus detail, sky shaders, effect textures, Mission Editor integration, and renderer files into a **single OvGME mod**. Only one activation is required.
 
@@ -10,7 +10,7 @@ The current package combines the cloud presets, volumetric rendering adjustments
 
 ## Download
 
-Download `Weather_MSFS_Realista_Completo-*.zip` from the [latest GitHub Release](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest).
+Download `DCS-Fluffy-Clouds-*.zip` from the [latest GitHub Release](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest).
 
 Do **not** use **Code → Download ZIP** as the installable package. The repository branch contains the source and documentation, but GitHub's per-file size limit prevents the complete runtime package from being stored directly in the branch. The Release archive includes every required file, including `EffectTextures.zip` and the compiled `fxo.edcz` cache.
 
@@ -32,7 +32,7 @@ The package is designed as one consistent set. Mixing individual files with othe
 After extraction, the mod folder should look like this:
 
 ```text
-Weather_MSFS_Realista_Completo/
+DCS Fluffy Clouds/
 ├── Bazar/
 │   ├── Effects/
 │   └── shaders/
@@ -49,11 +49,11 @@ These folders must be installed directly into the **DCS World installation root*
 
 1. Close DCS World.
 2. Download the complete ZIP from the [Releases page](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases).
-3. Extract `Weather_MSFS_Realista_Completo` into the Mods folder used by your OvGME profile.
+3. Extract `DCS Fluffy Clouds` into the Mods folder used by your OvGME profile.
 4. In OvGME, confirm that the profile's **Root Folder** is the DCS World installation directory, for example `C:\Program Files\Eagle Dynamics\DCS World` or your custom DCS installation path.
 5. Disable other cloud, weather, or shader mods that overwrite files under `Bazar`, `Config`, `MissionEditor`, `bin`, or `bin-mt`.
 6. The unrelated **Offline Terrain** mod can remain enabled if it does not report a file conflict.
-7. Enable only `Weather_MSFS_Realista_Completo` for the cloud and weather overhaul.
+7. Enable only `DCS Fluffy Clouds` for the cloud and weather overhaul.
 8. Start DCS and allow the first launch to finish rebuilding shaders.
 
 If OvGME reports file conflicts, cancel the activation and disable the conflicting mod before continuing.
@@ -94,7 +94,7 @@ DCS recreates both cache folders automatically.
 ### DCS does not start
 
 1. Close DCS and its updater.
-2. Disable `Weather_MSFS_Realista_Completo` in OvGME.
+2. Disable `DCS Fluffy Clouds` in OvGME.
 3. Confirm that OvGME restored the original files.
 4. Start DCS without the mod.
 5. Check whether a recent DCS update changed the files used by the package before enabling it again.
@@ -119,7 +119,7 @@ Before running a DCS repair or major update:
 ## Uninstallation
 
 1. Close DCS World.
-2. Disable `Weather_MSFS_Realista_Completo` in OvGME.
+2. Disable `DCS Fluffy Clouds` in OvGME.
 3. Allow OvGME to restore the original DCS files.
 4. Start DCS and let it rebuild shaders if necessary.
 
@@ -127,6 +127,6 @@ Do not delete or overwrite the OvGME backup data while the mod is enabled.
 
 ## Credits and license
 
-This project uses work from **DCS Fluffy Clouds** and **ATMOS-X**. Microsoft Flight Simulator is referenced only as a visual inspiration. This project is not affiliated with Microsoft, Eagle Dynamics, or ATMOS-X.
+**DCS Fluffy Clouds** is an independent community mod that incorporates ATMOS-X presets and custom cloud-rendering work. Microsoft Flight Simulator is referenced only as a visual inspiration. This project is not affiliated with Microsoft, Eagle Dynamics, or ATMOS-X.
 
 See [LICENSE](LICENSE) for the repository license.
