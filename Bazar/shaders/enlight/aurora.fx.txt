@@ -1,0 +1,521 @@
+#include "common/TextureSamplers.hlsl"
+#include "common/States11.hlsl"
+#include "common/samplers11.hlsl"
+#include "common/context.hlsl"
+#include "common/ambientCube.hlsl"
+#include "common/haloSampling.hlsl"
+#include "deferred/atmosphere.hlsl"
+
+// Textures are present but NOT used - purely procedural
+Texture2D DiffTex;
+Texture2D DiffTex2;
+
+// params.x = intensity (0..1), params.y = phase/seed, params.z = color temperature, params.w = ray strength
+float4 params;
+
+// 1. User-controlled saturation. 1 = original, >1 = more colorful, 0..1 = desaturate
+float gAuroraSaturation = 2.8;
+
+// 2. Cross-sky drift speed multiplier (1 = original, 0 = no drift, negative = reverse)
+float gAuroraDriftSpeed = 0.5;
+
+#define time gModelTime
+#define phase params.y
+
+// === Aurora Physical Parameters ===
+static const float AURORA_BASE_ALTITUDE = 100000.0;  // 100km - typical aurora altitude
+static const float AURORA_THICKNESS = 50000.0;       // 50km thick layer
+static const float AURORA_SPAN = 1200000.0;           // horizontal span
+
+// === Visual Tuning ===
+static const float CURTAIN_FREQUENCY = 0.75;         // how many vertical curtains
+static const float CURTAIN_SHARPNESS = 2.8;          // curtain edge definition
+static const float WAVE_AMPLITUDE = 0.42;            // horizontal wave motion
+static const float WAVE_FREQUENCY = 0.65;            // wave density
+static const float RAY_SHARPNESS = 3.8;              // vertical ray beam sharpness
+static const float DANCE_SPEED = 0.12;               // animation speed
+static const float FLICKER_INTENSITY = 0.08;         // subtle flickering
+static const float ALTITUDE_FADE_POWER = 1.05;       // flattened so edges (top/bottom) are less suppressed
+static const float DETAIL_SCALE = 3.5;               // detail noise scale
+static const float TURBULENCE_STRENGTH = 2.75;       // turbulence amount
+
+// Color parameters (based on O2/N2 emission lines)
+static const float3 GREEN_557NM = float3(0.05, 1.00, 0.20);   // O1 green line (dominant)
+static const float3 RED_630NM   = float3(1.00, 0.15, 0.20);   // O1 red line (high altitude)
+static const float3 BLUE_428NM  = float3(0.30, 0.50, 1.00);   // N2+ blue (rare, low)
+static const float3 PURPLE_TINT = float3(0.70, 0.25, 0.90);   // lower border purple
+
+static const float earthRadiusBottom = gEarthRadius * 0.25;
+static const float earthRadiusTop = gEarthRadius;
+static const float quadSize = AURORA_SPAN;
+static const float rangeInv = 2.0 / quadSize;
+static const float rangeTopInv = 2.0 / 500000.0;
+static const float fadeInv = 1.0 / 800.0;
+
+// === Procedural Noise Functions (No Textures) ===
+
+// High-quality hash for smooth randomness
+float hash(float n) { return frac(sin(n) * 43758.5453123); }
+float hash2D(float2 p) { return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453123); }
+
+// Smooth 2D value noise
+float valueNoise(float2 p)
+{
+    float2 i = floor(p);
+    float2 f = frac(p);
+    
+    // Cubic interpolation for smoothness
+    f = f * f * (3.0 - 2.0 * f);
+    
+    float a = hash2D(i);
+    float b = hash2D(i + float2(1.0, 0.0));
+    float c = hash2D(i + float2(0.0, 1.0));
+    float d = hash2D(i + float2(1.0, 1.0));
+    
+    return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
+}
+
+// Perlin-like gradient noise for organic patterns
+float gradientNoise(float2 p)
+{
+    float2 i = floor(p);
+    float2 f = frac(p);
+    
+    // Quintic interpolation for ultra-smooth gradients
+    float2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    
+    float2 ga = float2(hash2D(i), hash2D(i + 127.0)) * 2.0 - 1.0;
+    float2 gb = float2(hash2D(i + float2(1, 0)), hash2D(i + float2(1, 0) + 127.0)) * 2.0 - 1.0;
+    float2 gc = float2(hash2D(i + float2(0, 1)), hash2D(i + float2(0, 1) + 127.0)) * 2.0 - 1.0;
+    float2 gd = float2(hash2D(i + float2(1, 1)), hash2D(i + float2(1, 1) + 127.0)) * 2.0 - 1.0;
+    
+    float va = dot(ga, f);
+    float vb = dot(gb, f - float2(1, 0));
+    float vc = dot(gc, f - float2(0, 1));
+    float vd = dot(gd, f - float2(1, 1));
+    
+    return lerp(lerp(va, vb, u.x), lerp(vc, vd, u.x), u.y) * 0.5 + 0.5;
+}
+
+// Multi-octave fractal noise (fBm)
+float fbm(float2 p, int octaves, float lacunarity, float gain)
+{
+    float sum = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+    
+    for (int i = 0; i < octaves; i++)
+    {
+        sum += amplitude * gradientNoise(p * frequency);
+        frequency *= lacunarity;
+        amplitude *= gain;
+    }
+    
+    return sum;
+}
+
+// Turbulence (absolute value of noise for sharper features)
+float turbulence(float2 p, int octaves)
+{
+    float sum = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+    
+    for (int i = 0; i < octaves; i++)
+    {
+        sum += amplitude * abs(gradientNoise(p * frequency) * 2.0 - 1.0);
+        frequency *= 2.1;
+        amplitude *= 0.5;
+    }
+    
+    return sum;
+}
+
+// Domain warping for organic distortion
+float2 domainWarp(float2 p, float amount, float t)
+{
+    float2 q = float2(
+        fbm(p + float2(0.0, 0.0), 4, 2.0, 0.5),
+        fbm(p + float2(5.2, 1.3), 4, 2.0, 0.5)
+    );
+    
+    float2 r = float2(
+        fbm(p + 4.0 * q + float2(1.7 + t * 0.15, 9.2), 4, 2.0, 0.5),
+        fbm(p + 4.0 * q + float2(8.3 - t * 0.12, 2.8), 4, 2.0, 0.5)
+    );
+    
+    return p + amount * r;
+}
+
+float distanceToAltitude(float r, float mu, float altitudeMeters)
+{
+    const float rg = gEarthRadius;
+    float rc = altitudeMeters * 0.001 + rg;
+    Area discriminant = r * r * (mu * mu - 1.0) + rc * rc;
+    float dist = (rc > r) 
+        ? ClampDistance(-r * mu + SafeSqrt(discriminant))
+        : ClampDistance(-r * mu - SafeSqrt(discriminant));
+    return max(dist, 0.001);
+}
+
+float3 getRealLayerPos(float3 camera, float3 pos, float altitudeMeters)
+{
+    float3 cpos = (pos - camera) * 0.001;
+    float d = length(cpos);
+    float3 view = cpos / d;
+    float r = length(camera);
+    float travel = distanceToAltitude(r, view.y, altitudeMeters);
+    return camera + view * travel;
+}
+
+float3 calculateAtmosphere(float3 cameraPos, float3 pos, out float3 transmittance)
+{
+    return GetSkyRadianceToPoint(cameraPos, pos, 0.0, gSunDir, transmittance) * gAtmIntensity;
+}
+
+struct VS_INPUT
+{
+    float2 vPos : POSITION0;
+    float2 vTex : TEXCOORD0;
+};
+
+struct VS_OUTPUT
+{
+    float4 oPos : SV_POSITION;
+    float3 oUVW : TEXCOORD0;
+    float4 params : TEXCOORD1;
+    float3 inscatter : TEXCOORD2;
+    float3 transmittance : TEXCOORD3;
+    float3 posWS : POSITION1;
+    float3 viewDir : TEXCOORD4;
+    float3 normal : TEXCOORD5;
+};
+
+VS_OUTPUT VertOut(VS_INPUT i)
+{
+    i.vPos.xy *= quadSize;
+
+    float ex = i.vPos.x * 0.001;
+    float ez = i.vPos.y * 0.001;
+
+    float cameraAltitude = gCameraAltitude;
+    float cameraAbove = step(AURORA_BASE_ALTITUDE, cameraAltitude);
+
+    float r0 = earthRadiusBottom + AURORA_BASE_ALTITUDE * 0.001;
+    float r1 = earthRadiusTop + AURORA_BASE_ALTITUDE * 0.001;
+
+    float ey0 = sqrt(max(r0 * r0 - ex * ex - ez * ez, 0.0)) - earthRadiusBottom;
+    float ey1 = sqrt(max(r1 * r1 - ex * ex - ez * ez, 0.0)) - earthRadiusTop;
+
+    float3 tw;
+    tw.xz = i.vPos.xy;
+    tw.y = lerp(ey0, ey1, cameraAbove) * 1000.0 - gOrigin.y;
+
+    VS_OUTPUT o;
+    o.posWS = tw.xyz + float3(gCameraPos.x, 0, gCameraPos.z);
+    o.oPos = mul(float4(o.posWS, 1), gViewProj);
+
+    float2 uvBase = (i.vTex.xy + (gOrigin.xz / quadSize) + (gCameraPos.xz / quadSize));
+    // Apply separate drift speed control
+    o.oUVW.xy = uvBase * 2.2 + float2(time * 0.01, time * 0.005) * gAuroraDriftSpeed;
+    
+    float nDist = length(tw.xz) * lerp(rangeInv, rangeTopInv, cameraAbove);
+    o.oUVW.z = nDist;
+
+    float fadeFactor = min(abs(AURORA_BASE_ALTITUDE - cameraAltitude) * fadeInv, 1);
+
+    o.params.x = max(params.x, 0.0);
+    o.params.y = phase;
+    o.params.z = params.z;
+    o.params.w = fadeFactor;
+
+    float3 posAS = OriginSpaceToAtmosphereSpace(o.posWS);
+    float3 cameraPosAS = float3(gEarthCenter.x, max(0.0f, gEarthCenter.y - gEarthRadius) + gEarthRadius, gEarthCenter.z);
+    float3 realPos = getRealLayerPos(cameraPosAS, posAS, AURORA_BASE_ALTITUDE);
+    o.inscatter = calculateAtmosphere(cameraPosAS, realPos, o.transmittance);
+    o.normal = normalize(realPos - float3(gEarthCenter.x, gEarthCenter.y, gEarthCenter.z));
+    
+    o.viewDir = normalize(o.posWS.xyz - gCameraPos.xyz);
+
+    return o;
+}
+
+// === Pure Procedural Aurora Generation ===
+
+float generateCurtainMask(float2 uv, float t, float seed)
+{
+    // Warp the domain for organic curtain shapes
+    float2 warpedUV = domainWarp(uv * 0.8, TURBULENCE_STRENGTH, t);
+    
+    float x = warpedUV.x * CURTAIN_FREQUENCY + seed * 2.5;
+    
+    // Multiple wave frequencies for natural curtain undulation
+    float wave1 = sin(warpedUV.y * WAVE_FREQUENCY * 0.8 + t * 0.2 + seed) * WAVE_AMPLITUDE;
+    float wave2 = sin(warpedUV.y * WAVE_FREQUENCY * 1.9 - t * 0.35 + seed * 1.7) * WAVE_AMPLITUDE * 0.6;
+    float wave3 = sin(warpedUV.y * WAVE_FREQUENCY * 0.5 + t * 0.1 + seed * 0.9) * WAVE_AMPLITUDE * 0.8;
+    
+    float xWave = x + wave1 + wave2 + wave3;
+    
+    // Create smooth curtain structure
+    float curtain = sin(xWave * 6.28318) * 0.5 + 0.5;
+    curtain = pow(curtain, CURTAIN_SHARPNESS);
+    
+    // Add fine detail with fBm
+    float detail = fbm(warpedUV * DETAIL_SCALE + t * 0.1, 5, 2.2, 0.48);
+    curtain *= 0.65 + 0.35 * detail;
+    
+    // Add subtle turbulence for edge variation
+    float turb = turbulence(warpedUV * 2.0 + t * 0.08, 3);
+    curtain *= 0.8 + 0.2 * turb;
+    
+    return saturate(curtain);
+}
+
+float generateRayStructure(float2 uv, float heightFrac, float t, float seed)
+{
+    // Vertical ray beams with smooth procedural variation
+    float rayX = uv.x * 6.0 + seed * 5.8 + sin(t * 0.25 + seed) * 1.5;
+    
+    // Smooth ray pattern with organic variation
+    float rayBase = fbm(float2(rayX, uv.y * 2.0) + t * 0.15, 4, 2.0, 0.5);
+    float rayPattern = pow(rayBase, RAY_SHARPNESS);
+    
+    // Rays are stronger at top and fade down
+    float rayFade = smoothstep(0.2, 0.65, heightFrac) * smoothstep(1.0, 0.85, heightFrac);
+    
+    // Smooth flickering animation
+    float rayFlicker = 0.5 + 0.5 * sin(t * 1.2 + rayX * 0.5 + seed * 4.0);
+    
+    return rayPattern * rayFade * rayFlicker * params.w;
+}
+
+float gaussian(float x, float mean, float width)
+{
+    float d = (x - mean) / max(1e-4, width);
+    return exp(-d * d);
+}
+
+// Perceptual saturation adjustment for aurora emission only
+float3 ApplySaturation(float3 rgb, float sat)
+{
+    const float3 lumaW = float3(0.2126, 0.7152, 0.0722); // Rec.709
+    float luma = dot(rgb, lumaW);
+    return lerp(luma.xxx, rgb, sat);
+}
+
+float3 getAuroraColor(float heightFrac, float density, float colorTemp, float rayContrib)
+{
+    // Gaussian lobes for each line (centers and widths in [0..1] heightFraction)
+    float gLobe = gaussian(heightFrac, 0.45, 0.18); // O1 green
+    float rLobe = gaussian(heightFrac, 0.86, 0.14); // O1 red (high altitude) ? slightly wider
+    float bLobe = gaussian(heightFrac, 0.22, 0.17); // N2+ blue (low altitude) ? slightly wider
+    float pLobe = gaussian(heightFrac, 0.30, 0.13); // purple tint near lower border
+
+    // Warm/cool bias: 0=cool (green/blue), 1=warm (red)
+    float warmBias = saturate(colorTemp);
+    float coolBias = 1.0 - warmBias;
+
+    // Line intensity scaling. Boost red/blue so they visibly compete with green.
+    float greenScale = lerp(1.0, 0.8, warmBias);
+    float redScale   = lerp(0.8, 1.7, warmBias);
+    float blueScale  = lerp(1.25, 0.95, warmBias);
+    float purpleScale= 0.8;
+
+    // Weighted sum of spectral lines
+    float3 color = 0;
+    color += GREEN_557NM * (gLobe * greenScale);
+    color += RED_630NM   * (rLobe * redScale);
+    color += BLUE_428NM  * (bLobe * blueScale);
+    color += PURPLE_TINT * (pLobe * purpleScale);
+
+    // Soft normalize so overlap doesn't crush minority hues
+    float norm = max(1e-3, (gLobe + rLobe + bLobe + pLobe) + 0.15);
+    color /= norm;
+
+    // Rays: tint to preserve chroma and reduce whitening
+    float3 rayTint = lerp(float3(0.65, 0.85, 1.0),  // cooler tint
+                          float3(1.00, 0.70, 0.65), // warmer tint
+                          warmBias);
+    color += rayContrib * rayTint * density * 0.45;
+
+    return saturate(color);
+}
+
+float4 psAurora(VS_OUTPUT i, uniform bool FLIR_mode, uniform bool HALO_mode) : SV_TARGET0
+{
+    // Derivative-aware radial edge feathering to avoid hard clip
+    float r = i.oUVW.z;             // radial normalized distance across dome quad
+    float w = max(0.0015, fwidth(r) * 2.5);
+    float edgeMask = 1.0 - smoothstep(1.0 - w, 1.0 + w, r);
+    if (!FLIR_mode)
+    {
+        // Discard only well outside the feathered band to keep fillrate down
+        clip((1.0 + w * 2.0) - r);
+    }
+
+    float intensity = i.params.x;
+    float seed = i.params.y;
+    float colorTemp = i.params.z;
+    float fade = i.params.w;
+    
+    float t = time * DANCE_SPEED + seed * 1.8;
+    
+    // Recompute view direction and normal per-pixel to avoid grid artifacts from
+    // interpolated values across the geometry grid.
+    float3 worldUp = normalize(i.posWS - float3(gEarthCenter.x, gEarthCenter.y, gEarthCenter.z));
+    float3 viewDir = normalize(i.posWS - gCameraPos);
+    float viewDotN = abs(dot(viewDir, worldUp));
+
+    // Base UVs
+    float2 uv = i.oUVW.xy;
+
+    // Very small, stable world-space jitter to further de-grid interpolation artifacts.
+    const float JITTER_AMPLITUDE = 0.0015; // ~0.15% of UV space
+    float2 jitter = float2(hash2D(i.posWS.xz * 0.0009 + seed), hash2D(i.posWS.xz * 0.0013 - seed)) - 0.5;
+    uv += jitter * JITTER_AMPLITUDE;
+    
+    // View angle influence
+    float curtainThickness = lerp(2.2, 0.6, viewDotN);
+    
+    // Volumetric march through aurora layer
+    const int MARCH_STEPS = 4;
+    float stepSize = 1.0 / float(MARCH_STEPS);
+    
+    float3 accumulatedColor = float3(0, 0, 0);
+    float accumulatedAlpha = 0.0;
+    
+    [loop]
+    for (int step = 0; step < MARCH_STEPS; step++)
+    {
+        float heightFrac = (float(step) + 0.5) * stepSize;
+        
+        // Layer offset for depth parallax
+        float2 layerUV = uv + float2(0, heightFrac * 0.1);
+        
+        // Pure procedural curtain generation
+        float curtainMask = generateCurtainMask(layerUV, t + heightFrac * 0.35, seed);
+        
+        // Add multi-scale detail with fBm
+        float detail1 = fbm(layerUV * 1.8 + t * 0.06, 5, 2.1, 0.5);
+        float detail2 = valueNoise(layerUV * 3.5 - t * 0.09);
+        float combinedDetail = detail1 * 0.7 + detail2 * 0.3;
+        
+        // Combine structure smoothly
+        float density = curtainMask * (0.55 + 0.45 * combinedDetail);
+        
+        // Altitude-based fade with extra energy near top/bottom to reveal red/blue
+        float baseFade = pow(heightFrac * (1.0 - heightFrac) * 4.0, ALTITUDE_FADE_POWER);
+        float edgeLift = 0.35 * gaussian(heightFrac, 0.86, 0.20) + 0.25 * gaussian(heightFrac, 0.22, 0.20);
+        float altitudeFade = saturate(baseFade + edgeLift);
+        density *= altitudeFade;
+        
+        // Add ray structure
+        float rays = generateRayStructure(layerUV, heightFrac, t, seed);
+        density = saturate(density + rays * 0.28);
+        
+        // Smooth flickering
+        float flicker = 1.0 + FLICKER_INTENSITY * sin(t * 5.0 + heightFrac * 8.0 + seed * 2.5);
+        density *= flicker;
+        
+        // Edge feather mask applied into density to avoid silhouettes
+        density *= edgeMask;
+        
+        // Get color for this layer
+        float3 layerColor = getAuroraColor(heightFrac, density, colorTemp, rays);
+        
+        // Emission strength with smooth pulsing
+        float emission = density * curtainThickness * (0.82 + 0.18 * sin(t * 0.5 + heightFrac * 1.8));
+        
+        // Front-to-back blending
+        float stepAlpha = saturate(emission * stepSize * 1.4);
+        float transmit = 1.0 - accumulatedAlpha;
+        
+        accumulatedColor += layerColor * emission * stepAlpha * transmit * (1.0 + intensity * 0.5);
+        accumulatedAlpha += stepAlpha * transmit;
+        
+        if (accumulatedAlpha > 0.98) break;
+    }
+    
+    // Horizon feather using world up vector (anti-aliased)
+    float upDot = dot(normalize(i.posWS - float3(gEarthCenter.x, gEarthCenter.y, gEarthCenter.z)), float3(0, 1, 0));
+    float hw = fwidth(upDot) * 4.0;
+    float horizonMask = smoothstep(-0.12 - hw, 0.06 + hw, upDot);
+
+    // Apply fading (distance + horizon + radial feather)
+    float finalFade = fade * horizonMask;
+    accumulatedColor *= finalFade;
+    accumulatedAlpha *= finalFade;
+
+    // 2. Apply saturation to aurora emission only (before atmosphere mix)
+    float sat = clamp(gAuroraSaturation, 0.0, 3.0);
+    accumulatedColor = ApplySaturation(accumulatedColor, sat);
+    
+    // Apply atmospheric effects
+    float3 finalColor = accumulatedColor * i.transmittance + i.inscatter;
+    
+    // Multiply by radial edge mask at the end as well (color and alpha)
+    finalColor *= edgeMask;
+    float finalAlpha = saturate(accumulatedAlpha * 0.85) * edgeMask;
+    
+    float4 output;
+    output.rgb = finalColor;
+    output.a = finalAlpha;
+    
+    if (FLIR_mode)
+    {
+        output.rgb = lerp(0, output.rgb, gFLIR_CloudsIntesity);
+        output = lerp(output, 1, gFLIR_SkyIntesity);
+    }
+    
+    return output;
+}
+
+RasterizerState auroraRS
+{
+    CullMode = None;
+    FillMode = Solid;
+    MultisampleEnable = false;
+    DepthClipEnable = false;
+};
+
+VertexShader vsComp = CompileShader(vs_4_0, VertOut());
+
+technique10 T0
+{
+    pass MAIN
+    {
+        SetVertexShader(vsComp);
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, psAurora(false, false)));
+        SetBlendState(enableAlphaBlend, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(enableDepthBufferNoWrite, 0);
+        SetRasterizerState(auroraRS);
+    }
+    pass FLIR
+    {
+        SetVertexShader(vsComp);
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, psAurora(true, false)));
+        SetBlendState(enableAlphaBlend, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(enableDepthBufferNoWrite, 0);
+        SetRasterizerState(auroraRS);
+    }
+    pass MAIN_wHalo
+    {
+        SetVertexShader(vsComp);
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, psAurora(false, true)));
+        SetBlendState(enableAlphaBlend, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(enableDepthBufferNoWrite, 0);
+        SetRasterizerState(auroraRS);
+    }
+    pass FLIR_wHalo
+    {
+        SetVertexShader(vsComp);
+        SetGeometryShader(NULL);
+        SetPixelShader(CompileShader(ps_5_0, psAurora(true, true)));
+        SetBlendState(enableAlphaBlend, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+        SetDepthStencilState(enableDepthBufferNoWrite, 0);
+        SetRasterizerState(auroraRS);
+    }
+}

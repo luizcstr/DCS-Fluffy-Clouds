@@ -1,33 +1,32 @@
-DCS Fluffy Clouds — MOD UNICO
-================================
+DCS Fluffy Clouds — STANDALONE MOD
+==================================
 
-O QUE TEM DENTRO
-  - Presets ATMOS-X retrabalhados em clouds.lua.
-  - Mapa suave de cobertura cloudsMap01.png.
-  - Nuvens volumetricas com base mais cheia, variacao de topo e gomos
-    mais definidos.
-  - Cirrus com camada de detalhe, shaders de ceu e lightning.
-  - enlight.dll para bin e bin-mt.
-  - Texturas e integracao com o painel de clima do Mission Editor.
+WHAT IS INCLUDED
+  - Reworked ATMOS-X cloud presets and terrain configuration.
+  - Required ATMOS-X renderer and shader files bundled into one mod.
+  - Patched volumetric-cloud shader cache, cloud map, cirrus, sky,
+    precipitation, water, lightning, and particle shaders.
+  - enlight.dll for both bin and bin-mt.
+  - Effect textures, cloud thumbnails, and Mission Editor integration.
 
-COMO ATIVAR
-  1. Feche o DCS.
-  2. No OvGME, desative outros mods de nuvem, clima ou shader que
-     sobrescrevam os mesmos arquivos.
-  3. Confirme que o perfil OvGME aponta para a pasta de instalacao do DCS.
-  4. Ative apenas "DCS Fluffy Clouds" para o pacote de clima e nuvens.
-  5. Abra o DCS e aguarde o primeiro carregamento terminar.
+HOW TO ENABLE
+  1. Close DCS.
+  2. Disable ATMOS-X and any other cloud, weather, or shader mod that
+     overwrites the same files.
+  3. Confirm that the OvGME profile points to the DCS installation folder.
+  4. Enable only "Weather_MSFS_Realista_Standalone".
+  5. Start DCS and wait for the first shader compilation to finish.
 
-PRIMEIRO CARREGAMENTO
-  O DCS recompila os shaders na primeira inicializacao depois que o mod e
-  ativado. Esse carregamento pode demorar mais, e as nuvens podem sumir e
-  reaparecer enquanto o cache e criado.
+FIRST LAUNCH
+  DCS recompiles shaders the first time after the mod is enabled. This launch
+  may take longer, and clouds may disappear and reappear while the cache is
+  created. This is normal.
 
-  Nos proximos boots, mantenha o mesmo conjunto de mods ativo para que o
-  cache seja reutilizado. Se o pop-in continuar depois de dois boots sem
-  trocar mods, feche o DCS e apague as pastas "fxo" e "metashaders2" na
-  pasta correspondente em Saved Games. O DCS recria ambas automaticamente.
+  Keep the same mod set active on later launches so the cache can be reused.
+  If the pop-in continues after two launches without changing mods, close DCS
+  and delete the "fxo" and "metashaders2" folders under Saved Games. DCS
+  recreates both folders automatically.
 
-REVERSAO
-  Feche o DCS e desative "DCS Fluffy Clouds" no OvGME. O gerenciador
-  restaura os arquivos originais do simulador.
+REVERSAL
+  Close DCS and disable "Weather_MSFS_Realista_Standalone" in OvGME. The
+  manager restores the simulator's original files.
