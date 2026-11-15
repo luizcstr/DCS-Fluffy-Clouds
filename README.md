@@ -1,6 +1,6 @@
-# DCS Fluffy Clouds — Weather MSFS Realistic Standalone
+# DCS Fluffy Clouds — weather and cloud overhaul for DCS World
 
-**DCS Fluffy Clouds — Weather MSFS Realistic Standalone** is a complete visual weather and cloud overhaul for **DCS World**. It changes the way the simulator draws and presents the sky, clouds, cirrus, precipitation, water, lightning, and related atmospheric effects, with a visual style inspired by Microsoft Flight Simulator.
+**DCS Fluffy Clouds — is a complete visual weather and cloud overhaul for **DCS World**. It changes the way the simulator draws and presents the sky, clouds, cirrus, precipitation, water, lightning, and related atmospheric effects, with a visual style inspired by Microsoft Flight Simulator.
 
 The package is **standalone**: the ATMOS-X shader and terrain files required by the custom cloud renderer are included inside the mod. You do not need to install or enable ATMOS-X separately.
 
