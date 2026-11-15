@@ -40,7 +40,7 @@ This is a **standalone** package. Do not enable it together with ATMOS-X or the 
 3. Extract the mod folder into the Mods folder used by your OvGME profile.
 4. Confirm that the profile's **Root Folder** is the DCS World installation directory, not `Saved Games`.
 5. Disable ATMOS-X and any other cloud, weather, or shader mod that overwrites files under `Bazar`, `Config`, `MissionEditor`, `bin`, or `bin-mt`.
-6. Enable only `Weather_MSFS_Realista_Standalone`.
+6. Enable only `Fluffy Clouds`.
 7. Start DCS and allow the first shader rebuild to finish.
 
 If OvGME reports file conflicts, cancel activation and disable the conflicting mod first.
@@ -61,7 +61,7 @@ The first image shows **Without the mod**. The second image shows **With mod app
 
 ## Reverting
 
-Close DCS and disable `Weather_MSFS_Realista_Standalone` in OvGME. OvGME restores the original simulator files.
+Close DCS and disable `Fluffy Clouds` in OvGME. OvGME restores the original simulator files.
 
 ## Credits and license
 
