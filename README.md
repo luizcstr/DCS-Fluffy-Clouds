@@ -6,7 +6,7 @@ The package is **standalone**: the ATMOS-X shader and terrain files required by 
 
 > **Important:** this mod replaces DCS installation files while enabled. Use a mod manager such as OvGME so every change can be reverted safely. DCS updates may require the mod to be disabled, reviewed, and re-enabled. Multiplayer integrity-check compatibility is not guaranteed.
 
-[Download the complete package](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) · [Quick instructions](LEIA-ME.txt) · [Standalone notes](LEIA-ME_STANDALONE.txt) · [License](LICENSE)
+[Download the complete package](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) · [License](LICENSE)
 
 ## What the mod changes
 
@@ -31,7 +31,7 @@ The goal is a denser, more dimensional, and less repetitive sky. The exact resul
 - Mission Editor weather integration and cloud thumbnails.
 - The complete effect texture archive required by the package.
 
-This is a **standalone** package. Do not enable it together with ATMOS-X or the older `Weather_MSFS_Realista_Completo` package.
+This is a **standalone** package. Do not enable it together with ATMOS-X or the older `the older cloud package` package.
 
 ## Installation with OvGME
 
