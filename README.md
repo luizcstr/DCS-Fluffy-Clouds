@@ -37,11 +37,11 @@ If a clean rebuild is needed, close DCS and delete the contents of the appropria
 
 ## Before-and-after comparison
 
-The first image shows **With mod applied**. The second image shows **Without the mod**. These are the original screenshots, presented without content changes.
+The first image shows **Without the mod**. The second image shows **With mod applied**. These are the original screenshots, presented without content changes.
 
-| With mod applied | Without the mod |
+| Without the mod | With mod applied |
 | --- | --- |
-| ![With mod applied](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/with-mod.jpg) | ![Without the mod](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/without-mod.jpg) |
+| ![Without the mod](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/without-mod.jpg) | ![With mod applied](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/with-mod.jpg) |
 
 ## Reverting
 
