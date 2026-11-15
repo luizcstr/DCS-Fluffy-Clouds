@@ -17,7 +17,7 @@ HOW TO USE (OvGME)
 ------------------
 1. Disable ATMOS-X in its application or in OvGME.
 2. Disable Weather_MSFS_Realista_Completo.
-3. Enable only Weather_MSFS_Realista_Standalone.
+3. Enable only Fluffy Clouds.
 4. Start DCS and load a mission.
 
 FIRST LAUNCH
