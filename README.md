@@ -1,6 +1,6 @@
-# Weather MSFS Realistic Complete for DCS World
+# Fluffy Clouds for DCS
 
-An experimental, all-in-one weather and cloud overhaul for **DCS World**, built on DCS Fluffy Clouds and ATMOS-X presets with a visual style inspired by Microsoft Flight Simulator.
+An experimental, all-in-one weather and cloud overhaul for **DCS World**, built on and ATMOS-X presets with a visual style inspired by Microsoft Flight Simulator.
 
 The current package combines the cloud presets, volumetric rendering adjustments, cirrus detail, sky shaders, effect textures, Mission Editor integration, and renderer files into a **single OvGME mod**. Only one activation is required.
 
