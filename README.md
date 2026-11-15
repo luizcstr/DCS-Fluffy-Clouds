@@ -35,6 +35,14 @@ The first DCS launch after changing mods can take several minutes while shaders 
 
 If a clean rebuild is needed, close DCS and delete the contents of the appropriate `fxo` and `metashaders2` folders under `Saved Games\\DCS.openbeta`. DCS recreates them automatically.
 
+## Before-and-after comparison
+
+The first image shows **With mod applied**. The second image shows **Without the mod**. These are the original screenshots, presented without content changes.
+
+| With mod applied | Without the mod |
+| --- | --- |
+| ![With mod applied](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/with-mod.jpg) | ![Without the mod](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/without-mod.jpg) |
+
 ## Reverting
 
 Close DCS and disable `Weather_MSFS_Realista_Standalone` in OvGME. OvGME restores the original simulator files.
