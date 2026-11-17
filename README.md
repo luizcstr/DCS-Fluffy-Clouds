@@ -1,12 +1,20 @@
 # DCS Fluffy Clouds — weather and cloud overhaul for DCS World
 
-**DCS Fluffy Clouds — is a complete visual weather and cloud overhaul for **DCS World**. It changes the way the simulator draws and presents the sky, clouds, cirrus, precipitation, water, lightning, and related atmospheric effects, with a visual style inspired by Microsoft Flight Simulator.
+**DCS Fluffy Clouds** is a complete visual weather and cloud overhaul for **DCS World**. It changes the way the simulator draws and presents the sky, clouds, cirrus, precipitation, water, lightning, and related atmospheric effects, with a visual style inspired by Microsoft Flight Simulator.
 
 The package is **standalone**: the ATMOS-X shader and terrain files required by the custom cloud renderer are included inside the mod. You do not need to install or enable ATMOS-X separately.
 
 > **Important:** this mod replaces DCS installation files while enabled. Use a mod manager such as OvGME so every change can be reverted safely. DCS updates may require the mod to be disabled, reviewed, and re-enabled. Multiplayer integrity-check compatibility is not guaranteed.
 
 [Download the complete package](https://github.com/luizcstr/DCS-Fluffy-Clouds/releases/latest) · [License](LICENSE)
+
+## Latest release: v1.0.1
+
+This release is based on the latest `Weather_MSFS_Realista_Standalone` package found locally.
+
+- Updated standalone runtime and cloud-rendering files.
+- Preserved the OvGME installation structure.
+- **Experimental:** cloud condensation is included as an experimental feature.
 
 ## What the mod changes
 
@@ -20,19 +28,6 @@ The mod replaces the default weather-rendering components with one consistent pa
 - **Mission Editor:** the included weather-panel files and thumbnails make the custom presets available while creating or editing missions.
 - **Runtime support:** `enlight.dll` is included for both standard and multithreaded DCS executables.
 
-The goal is a denser, more dimensional, and less repetitive sky. The exact result still depends on the selected mission preset, altitude, lighting, time of day, camera position, and DCS graphics settings.
-
-## What is included
-
-- Reworked ATMOS-X cloud presets in `Config/Effects/clouds.lua`.
-- ATMOS-X terrain and renderer configuration required for standalone operation.
-- Patched `fxo.edcz`, cloud coverage textures, cirrus, sky, precipitation, water, lightning, and particle shaders.
-- `enlight.dll` for both the standard and multithreaded DCS executables.
-- Mission Editor weather integration and cloud thumbnails.
-- The complete effect texture archive required by the package.
-
-This is a **standalone** package. Do not enable it together with ATMOS-X or the older `the older cloud package` package.
-
 ## Installation with OvGME
 
 1. Close DCS World.
@@ -45,23 +40,15 @@ This is a **standalone** package. Do not enable it together with ATMOS-X or the 
 
 If OvGME reports file conflicts, cancel activation and disable the conflicting mod first.
 
-## First launch and shader cache
+## Reverting
 
-The first DCS launch after changing mods can take several minutes while shaders are recompiled. Clouds may briefly disappear and reload; this is expected. Complete a flight, close DCS normally, and launch it again without changing the active mod set.
-
-If a clean rebuild is needed, close DCS and delete the contents of the appropriate `fxo` and `metashaders2` folders under `Saved Games\\DCS.openbeta`. DCS recreates them automatically.
+Close DCS and disable `Fluffy Clouds` in OvGME. OvGME restores the original simulator files.
 
 ## Before-and-after comparison
-
-The first image shows **Without the mod**. The second image shows **With mod applied**. These are the original screenshots, presented without content changes.
 
 | Without the mod | With mod applied |
 | --- | --- |
 | ![Without the mod](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/without-mod.jpg) | ![With mod applied](https://raw.githubusercontent.com/luizcstr/DCS-Fluffy-Clouds/main/docs/screenshots/with-mod.jpg) |
-
-## Reverting
-
-Close DCS and disable `Fluffy Clouds` in OvGME. OvGME restores the original simulator files.
 
 ## Credits and license
 
